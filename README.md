@@ -39,6 +39,9 @@ Before running the application, ensure you have the following installed:
       "enquiry_type": "General Inquiry",
       "message": "This is a sample message with a 2000 character limit."
    }
+## Copyright and license:
+
+   © 2023 Binary-Phantom PK 
 
 ## Contributing
    Feel free to contribute to this project by opening issues or pull requests.
