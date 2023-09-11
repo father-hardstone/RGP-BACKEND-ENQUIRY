@@ -13,9 +13,9 @@ Before running the application, ensure you have the following installed:
 ## Installation
 
 1. Clone this repository:
-   git clone https://github.com/father-hardstone/RGP-BACKEND-ENQUIRY.git
+   `git clone https://github.com/father-hardstone/RGP-BACKEND-ENQUIRY.git`
 2. Install Go dependencies:
-   go mod tidy
+   `go mod tidy`
 
 ## Configuration
    Configure the MongoDB URI in the "main.go" file ("mongoURI" constant).
@@ -23,13 +23,14 @@ Before running the application, ensure you have the following installed:
 
 ## Usage
 1. Start the application:
-   go run main.go
-2. Make a POST request to http://localhost:8080/enquiry with JSON data (see below for JSON format).
+`go run main.go`
+3. Make a POST request to `http://localhost:8080/enquiry` with JSON data (see below for JSON format).
 
-3. The API will save the enquiry to the MongoDB database.
+4. The API will save the enquiry to the MongoDB database.
 
 ## JSON Request Format
    Sample JSON for submitting an enquiry:
+```
    {
       "first_name": "John",
       "last_name": "Doe",
@@ -39,9 +40,10 @@ Before running the application, ensure you have the following installed:
       "enquiry_type": "General Inquiry",
       "message": "This is a sample message with a 2000 character limit."
    }
+```
 ## Copyright and license:
 
-   © 2023 Binary-Phantom PK 
+   © 2023 Binary-Phantom PK `
 
 ## Contributing
    Feel free to contribute to this project by opening issues or pull requests.
