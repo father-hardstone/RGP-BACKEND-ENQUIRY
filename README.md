@@ -43,7 +43,7 @@ Before running the application, ensure you have the following installed:
 ```
 ## Copyright and license:
 
-   © 2023 Binary-Phantom PK `
+ `  © 2023 Binary-Phantom Pk `
 
 ## Contributing
    Feel free to contribute to this project by opening issues or pull requests.
