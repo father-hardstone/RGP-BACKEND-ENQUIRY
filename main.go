@@ -27,7 +27,7 @@ type Query struct {
 
 // MongoDB configuration
 const (
-	mongoURI       = "mongodb+srv://Faridi:tAZXwJjYgiKHo6WB@zeto.vxe0b.mongodb.net/?retryWrites=true&w=majority"
+	mongoURI       = "mongodb+srv://XYZ"
 	dbName         = "RGP"
 	collectionName = "Enquiries"
 )
