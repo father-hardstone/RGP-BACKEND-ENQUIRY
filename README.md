@@ -2,7 +2,7 @@
 
 This Go application provides an API for submitting and storing enquiries in a MongoDB database.
 
-## Prerequisites
+### Prerequisites
 
 Before running the application, ensure you have the following installed:
 
@@ -28,7 +28,7 @@ Before running the application, ensure you have the following installed:
 
 4. The API will save the enquiry to the MongoDB database.
 
-## JSON Request Format
+### JSON Request Format
    Sample JSON for submitting an enquiry:
 ```
    {
@@ -41,6 +41,9 @@ Before running the application, ensure you have the following installed:
       "message": "This is a sample message with a 2000 character limit."
    }
 ```
+
+
+
 ## Copyright and license:
 
  `  © 2023 Binary-Phantom Pk `
