@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
-	"os"
-	"github.com/gin-gonic/gin"
+
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,19 +28,24 @@ type Query struct {
 
 // MongoDB configuration
 const (
-	mongoURI       = "mongodb+srv://Faridi:tAZXwJjYgiKHo6WB@zeto.vxe0b.mongodb.net/?retryWrites=true&w=majority"
+	mongoURI       = "mongodb+srv://rgpitglobal:blS6uA4ZnB9OnGRV@rgpitglobal.up1wnpe.mongodb.net/?retryWrites=true&w=majority"
 	dbName         = "RGP"
 	collectionName = "Enquiries"
 )
 
 func main() {
-	// Initialize Gin-Gonic router
-	r := gin.Default()
-	r.Use(corsMiddleware())
+	r := mux.NewRouter()
+	r.Use(CorsMiddleware)
+	// Add custom logging middleware
+	r.Use(loggingMiddleware)
+	r.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.WriteHeader(http.StatusOK)
+	})
 	// Define API routes
-	r.POST("/enquiry", EnquiryHandler)
-
-	// Create a MongoDB client
+	r.HandleFunc("/enquiry", EnquiryHandler).Methods("POST")
+	r.HandleFunc("/", RootHandler).Methods("GET")
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatal(err)
@@ -47,36 +53,52 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Connect to MongoDB
 	err = client.Connect(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer client.Disconnect(ctx)
 
-	// Start the HTTP server
 	fmt.Println("Server is running on :8080")
-	log.Fatal(r.Run("0.0.0.0:8080"))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r))
 }
+func CorsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-// EnquiryHandler handles POST requests to store the enquiry data in MongoDB.
-func EnquiryHandler(c *gin.Context) {
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+func RootHandler(w http.ResponseWriter, r *http.Request) {
+	// Response message
+	message := "You have reached the end of the line...\nState your wish!!!"
+
+	// Write the response to the client
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, message)
+}
+func EnquiryHandler(w http.ResponseWriter, r *http.Request) {
 	var q Query
-	clientIP := c.ClientIP()
-
-	// Generate a unique query ID
-	q.QueryID = primitive.NewObjectID()
 
 	// Parse JSON request body into the Query struct
-	if err := c.ShouldBindJSON(&q); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&q); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to decode JSON: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
 	// Create a MongoDB client
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		http.Error(w, fmt.Sprintf("Failed to connect to MongoDB: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -85,7 +107,7 @@ func EnquiryHandler(c *gin.Context) {
 	// Connect to MongoDB
 	err = client.Connect(ctx)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		http.Error(w, fmt.Sprintf("Failed to connect to MongoDB: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 	defer client.Disconnect(ctx)
@@ -96,40 +118,47 @@ func EnquiryHandler(c *gin.Context) {
 	// Insert the enquiry data into MongoDB
 	_, err = collection.InsertOne(ctx, q)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		http.Error(w, fmt.Sprintf("Failed to insert data into MongoDB: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Thanks for reaching out. we will get back to you."})
-	logToFile("Client IP Address: " + clientIP)
+	// Send a JSON response for success
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success",
+		"message": "Thanks for reaching out. We will get back to you.",
+	})
+
+	// //Alternatively, send a JSON response for failure
+	// w.Header().Set("Content-Type", "application/json")
+	// w.WriteHeader(http.StatusInternalServerError)
+	// json.NewEncoder(w).Encode(map[string]interface{}{
+	// 	"status":  "error",
+	// 	"message": "Internal Server Error. Please try again later.",
+	// })
 }
 
-//middle function...
-func corsMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(http.StatusOK)
-        } else {
-            c.Next()
-        }
-    }
+// loggingMiddleware is a custom middleware function for logging requests.
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		// Create a response writer that captures the status code and response size
+		lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		// Call the next handler in the chain
+		next.ServeHTTP(lrw, r)
+		// Log the request details and status code
+		fmt.Printf("[%s]'   '%s'   '%s'   '%s'   '%v'   '-'   '%d\n", r.Method, r.RemoteAddr, r.URL.Path, r.Proto, time.Since(start), lrw.statusCode)
+	})
 }
-func logToFile(message string) {
-    // Open the file in append mode. Create it if it doesn't exist.
-    file, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-    if err != nil {
-        log.Println("Error opening log file:", err)
-        return
-    }
-    defer file.Close()
 
-    // Write the message to the file
-    _, err = file.WriteString(message + "\n")
-    if err != nil {
-        log.Println("Error writing to log file:", err)
-    }
+// loggingResponseWriter is a custom ResponseWriter that captures the status code.
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
 }

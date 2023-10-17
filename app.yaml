@@ -1,0 +1,10 @@
+runtime: go116
+entrypoint: ./main
+
+instance_class: F2
+
+handlers:
+- url: /enquiry 
+  script: auto
+- url: /     # New URL endpoint for GET method
+  script: auto
