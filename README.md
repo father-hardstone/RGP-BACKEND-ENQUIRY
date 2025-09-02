@@ -1,53 +1,175 @@
-# Enquiry Submission API
+# RGP Backend Enquiry API
 
-This Go application provides an API for submitting and storing enquiries in a MongoDB database.
+A modern, modular Go backend API for managing enquiries/queries with MongoDB integration.
+
+## 🎯 Business Logic
+
+### Enquiry Management System
+The application serves as a comprehensive enquiry management platform where:
+
+- **Clients can submit enquiries** through a simple form interface
+- **Enquiries are stored permanently** in MongoDB with full audit trails
+- **No modification or deletion** of enquiries is allowed (business requirement)
+- **Multiple enquiries** can be submitted by the same client
+- **Enquiry types** can be categorized for better organization
+
+### User Management System
+The platform includes a robust user management system for administrative purposes:
+
+- **Admin and Super-Admin roles** for access control
+- **Secure authentication** with bcrypt password hashing
+- **Username auto-generation** from email addresses
+- **Role-based access control** for future secure routes
+- **User profile management** with company affiliations
+
+### Data Validation & Security
+- **Comprehensive input validation** for all user inputs
+- **Email format verification** and uniqueness checks
+- **Password strength requirements** (minimum 8 characters)
+- **CORS protection** for cross-origin requests
+- **Security headers** to prevent common web vulnerabilities
+
+## 🏗️ Technical Implementation
+
+### Architecture Pattern
+The application follows a **clean, layered architecture** with clear separation of concerns:
+
+- **Models Layer**: Data structures with validation logic
+- **Services Layer**: Business logic and database operations
+- **Controllers Layer**: HTTP request handling and response formatting
+- **Middleware Layer**: Cross-cutting concerns (CORS, logging, security)
+- **Configuration Layer**: Environment-based settings management
+
+### Database Design
+- **MongoDB collections**: Separate collections for enquiries and users
+- **BSON document storage** with proper indexing on frequently queried fields
+- **Timestamp tracking** for creation and modification dates
+- **ObjectID primary keys** for unique identification
+
+### API Response Standardization
+- **Consistent JSON structure** across all endpoints
+- **Standardized error handling** with appropriate HTTP status codes
+- **Pagination metadata** for list responses
+- **Filtering capabilities** for data exploration
+
+### Performance Features
+- **Database connection pooling** for optimal performance
+- **Context timeouts** to prevent hanging operations
+- **Efficient pagination** with skip/limit optimization
+- **Sorted results** by creation date (newest first)
+
+## 🚀 Setup & Installation
 
 ### Prerequisites
+- **Go 1.18 or higher**
+- **MongoDB instance** (local or cloud)
+- **Git** for repository cloning
 
-Before running the application, ensure you have the following installed:
+### Environment Configuration
 
-- Go (Golang)
-- MongoDB
-- Required Go packages (Gin-Gonic, MongoDB driver)
+1. **Create `config.env` file** in the root directory:
+   ```env
+   # MongoDB Connection
+   NEW_MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/
+   NEW_DB_NAME=your_database_name
+   NEW_COLLECTION_NAME=Enquiries
+   USERS_COLLECTION_NAME=Users
+   ```
 
-## Installation
+2. **Update the connection string** with your actual MongoDB credentials
 
-1. Clone this repository:
-   `git clone https://github.com/father-hardstone/RGP-BACKEND-ENQUIRY.git`
-2. Install Go dependencies:
-   `go mod tidy`
+### Installation Steps
 
-## Configuration
-   Configure the MongoDB URI in the "main.go" file ("mongoURI" constant).
-   i.e. Make sure to replace <"mongodb+srv://XYZ"> on line 30 with your actual mongodb connection URI
+1. **Clone and navigate** to the project:
+   ```bash
+   git clone <repository-url>
+   cd RGP-BACKEND-ENQUIRY
+   ```
 
-## Usage
-1. Start the application:
-`go run main.go`
-3. Make a POST request to `http://localhost:8080/enquiry` with JSON data (see below for JSON format).
+2. **Install Go dependencies**:
+   ```bash
+   go mod tidy
+   ```
 
-4. The API will save the enquiry to the MongoDB database.
+3. **Run the application**:
+   ```bash
+   go run main.go
+   ```
 
-### JSON Request Format
-   Sample JSON for submitting an enquiry:
+4. **Access the API** at `http://localhost:8080`
+
+## 🔧 Configuration Details
+
+### MongoDB Setup
+- **Connection URI**: Supports both local and cloud MongoDB instances
+- **Database**: Separate database for the application
+- **Collections**: 
+  - `Enquiries`: Stores all client enquiries
+  - `Users`: Stores admin and super-admin accounts
+
+### Server Configuration
+- **Port**: Default 8080 (configurable in app.go)
+- **Host**: Binds to all interfaces (0.0.0.0)
+- **Timeout**: 10-second database operation timeout
+- **Graceful shutdown**: Handles OS signals for clean termination
+
+### Security Settings
+- **CORS**: Enabled for all origins (*)
+- **Headers**: Security headers for XSS protection
+- **Validation**: Input sanitization and format checking
+- **Authentication**: bcrypt password hashing with default cost
+
+## 📊 API Usage Examples
+
+### Create Enquiry
+```bash
+POST http://localhost:8080/enquiry
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john@example.com",
+  "phone_number": "+1234567890",
+  "company_name": "Tech Corp",
+  "enquiry_type": "general",
+  "message": "Inquiry about services"
+}
 ```
-   {
-      "first_name": "John",
-      "last_name": "Doe",
-      "email": "johndoe@example.com",
-      "phone_number": "123-456-7890",
-      "company_name": "ABC Inc.",
-      "enquiry_type": "General Inquiry",
-      "message": "This is a sample message with a 2000 character limit."
-   }
+
+### Get Enquiries with Pagination
+```bash
+GET http://localhost:8080/enquiries?page=1&limit=10&enquiry_type=general
 ```
 
+### Create Admin User
+```bash
+POST http://localhost:8080/create-user
+Content-Type: application/json
 
+{
+  "first_name": "Admin",
+  "last_name": "User",
+  "email": "admin@company.com",
+  "password": "securepassword123",
+  "role": "admin"
+}
+```
 
-## Copyright and license:
+## 🔍 Troubleshooting
 
- `  © 2023 Binary-Phantom Pk `
+### Common Issues
+- **Database connection failed**: Check MongoDB URI and credentials
+- **Port already in use**: Change port in app.go or kill existing process
+- **Missing dependencies**: Run `go mod tidy` to install packages
+- **Environment file not found**: Ensure `config.env` exists in root directory
 
-## Contributing
-   Feel free to contribute to this project by opening issues or pull requests.
+### Debug Mode
+- **Console logging**: All requests are logged with detailed information
+- **Database operations**: Service layer includes debug logging for user creation
+- **Error responses**: Detailed error messages for debugging
+
+---
+
+**Copyright © 2024 Father-Hardstone. All rights reserved.**
    

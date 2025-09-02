@@ -1,0 +1,5 @@
+{
+  "to": "khanbahaduribrahim@outlook.com",
+  "subject": "Test Email from RGP Backend",
+  "body": "<h2>Hello from RGP Backend!</h2><p>This is a test email sent via the new email service.</p>"
+}

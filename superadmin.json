@@ -1,0 +1,9 @@
+{
+  "first_name": "Admin",
+  "last_name": "User",
+  "email": "admin@rgp.com",
+  "password": "superadmin123",
+  "profile_pic": "",
+  "role": "super-admin",
+  "company_name": "RGP Global"
+}

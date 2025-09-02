@@ -1,0 +1,10 @@
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@example.com",
+  "phone_number": "+1234567890",
+  "company_name": "Tech Solutions Inc",
+  "enquiry_type": "general",
+  "message": "I would like to inquire about your services and pricing. Please provide more information about your offerings."
+}
+
