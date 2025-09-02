@@ -27,8 +27,8 @@ type App struct {
 // Initializes all components: database, services, controllers, and routes
 func NewApp() (*App, error) {
 	// Load environment variables
-	if err := godotenv.Load("config.env"); err != nil {
-		log.Fatal("Error loading config.env file")
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
 	}
 
 	// Load and validate database configuration
@@ -68,16 +68,19 @@ func NewApp() (*App, error) {
 	router := routes.SetupRoutes(rootController, enquiryController, userController, emailController, jwtService)
 
 	// Apply middleware in correct order
-	router.Use(middleware.CorsMiddleware)            // CORS must be first
+	router.Use(middleware.CorsMiddleware)            // CORS first
 	router.Use(middleware.LoggingMiddleware(logger)) // Logging second
 	router.Use(middleware.SecurityMiddleware)        // Security third
 
-	// Apply authentication middleware to protected routes only
-	// This is done in the routes setup, not globally
+	// Determine port
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // default for local dev
+	}
 
 	// Create HTTP server
 	server := &http.Server{
-		Addr:    "0.0.0.0:8080",
+		Addr:    "0.0.0.0:" + port,
 		Handler: router,
 	}
 
@@ -91,7 +94,7 @@ func NewApp() (*App, error) {
 // Start begins the HTTP server
 // Blocks until the server is stopped or encounters an error
 func (a *App) Start() error {
-	a.Logger.LogStartup("8080")
+	a.Logger.LogStartup(os.Getenv("PORT"))
 	a.Logger.LogDatabaseConnection("MongoDB", true)
 	return a.Router.ListenAndServe()
 }
